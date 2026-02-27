@@ -860,7 +860,7 @@ namespace Hangfire.Storage.SQLite.Test
 
                 var testSet2 = GetTestSet(database, set2.Key);
                 Assert.NotNull(testSet2);
-                Assert.Equal(1, testSet2.Count);
+                Assert.Single(testSet2);
             });
         }
 
@@ -882,10 +882,10 @@ namespace Hangfire.Storage.SQLite.Test
                 Commit(database, x => x.RemoveSet(set1Val1.Key));
 
                 var testSet1 = GetTestSet(database, set1Val1.Key);
-                Assert.Equal(0, testSet1.Count);
+                Assert.Empty(testSet1);
 
                 var testSet2 = GetTestSet(database, set2.Key);
-                Assert.Equal(1, testSet2.Count);
+                Assert.Single(testSet2);
             });
         }
 

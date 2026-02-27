@@ -1,42 +1,43 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
-    <TargetFrameworks>netstandard2.0;net48</TargetFrameworks>
-  </PropertyGroup>
-  <PropertyGroup>
-    <Version>0.4.2</Version>
-    <Authors>RaisedApp</Authors>
-    <Company>RaisedApp</Company>
-    <Copyright>Copyright © 2019 - Present</Copyright>
-    <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageProjectUrl>https://github.com/raisedapp/Hangfire.Storage.SQLite</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/raisedapp/Hangfire.Storage.SQLite</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageTags>Hangfire Hangfire-Storage Hangfire-Extension SQLite</PackageTags>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <title>Hangfire Storage SQLite</title>    
-    <Description>An Alternative SQLite Storage for Hangfire</Description>
-    <PackageReleaseNotes>
-      0.4.2
-      -remove re-entrancy (fixes SQLiteDistributedLock doesn't play right with async #68). Thanks to @kirides
-      -pause heartbeat timer while processing. Thanks to @kirides
-      -update expiration using SQL Update statement in a single step. Thanks to @kirides
-      -Added Heartbeat event (for testing). Thanks to @kirides
-      -if we no longer own the lock, we immediately dispose the heartbeat timer (fixes Unable to update heartbeat - still happening in .NET 6.0 #69). Thanks to @kirides
-    </PackageReleaseNotes>
-  </PropertyGroup>
-  <ItemGroup>
-    <None Include="..\..\..\LICENSE">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Hangfire.Core" Version="1.8.0" />
-    <PackageReference Include="sqlite-net-pcl" Version="1.8.116" />
-  </ItemGroup>
+	<PropertyGroup Condition=" '$(OS)' != 'Windows_NT' ">
+		<TargetFramework>netstandard2.0</TargetFramework>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
+		<TargetFrameworks>netstandard2.0;net48</TargetFrameworks>
+	</PropertyGroup>
+	<PropertyGroup>
+		<Version>0.4.3</Version>
+		<Authors>RaisedApp</Authors>
+		<Company>RaisedApp</Company>
+		<Copyright>Copyright © 2019 - Present</Copyright>
+		<PackageLicenseFile>LICENSE</PackageLicenseFile>
+		<PackageProjectUrl>https://github.com/raisedapp/Hangfire.Storage.SQLite</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/raisedapp/Hangfire.Storage.SQLite</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>Hangfire Hangfire-Storage Hangfire-Extension SQLite</PackageTags>
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<title>Hangfire Storage SQLite</title>
+		<Description>An Alternative SQLite Storage for Hangfire</Description>
+		<PackageReleaseNotes>
+			0.4.3
+			- Upgrade projects to .NET 8.0 (LTS).
+			- Update dependencies (Hangfire 1.8.23, Newtonsoft.Json 13.0.4).
+			- Explicitly referenced SQLitePCLRaw.bundle_green 2.1.11 to resolve NETSDK1206 RID-related warnings.
+			- Support for modern Hangfire 1.8 background process registration (GetStorageWideProcesses).
+		</PackageReleaseNotes>
+	</PropertyGroup>
+	<ItemGroup>
+		<None Include="..\..\..\LICENSE">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Hangfire.Core" Version="1.8.23" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+		<PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
+	</ItemGroup>
 
 </Project>

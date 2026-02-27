@@ -58,7 +58,8 @@ namespace Hangfire.Storage.SQLite
                 string.IsNullOrWhiteSpace(databasePath) ? throw new ArgumentNullException(nameof(databasePath)) : databasePath,
                 SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.NoMutex,
                 storeDateTimeAsTicks: true
-            ) {BusyTimeout = TimeSpan.FromSeconds(10)}), storageOptions)
+            )
+            { BusyTimeout = TimeSpan.FromSeconds(10) }), storageOptions)
         {
         }
 
@@ -135,6 +136,8 @@ namespace Hangfire.Storage.SQLite
         {
             if (featureId == null) throw new ArgumentNullException(nameof(featureId));
 
+            if (featureId == "JobStorage.ProcessesInsteadOfComponents") return true;
+
             return _features.TryGetValue(featureId, out var isSupported)
                 ? isSupported
                 : base.HasFeature(featureId);
@@ -187,9 +190,18 @@ namespace Hangfire.Storage.SQLite
         /// 
         /// </summary>
         /// <returns></returns>
-#pragma warning disable 618
+        public override IEnumerable<IBackgroundProcess> GetStorageWideProcesses()
+        {
+            yield return new ExpirationManager(this, _storageOptions.JobExpirationCheckInterval);
+            yield return new CountersAggregator(this, _storageOptions.CountersAggregateInterval);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        [Obsolete("Please use GetStorageWideProcesses instead. Will be removed with Hangfire.Core 2.0.0.")]
         public override IEnumerable<IServerComponent> GetComponents()
-#pragma warning restore 618
         {
             yield return new ExpirationManager(this, _storageOptions.JobExpirationCheckInterval);
             yield return new CountersAggregator(this, _storageOptions.CountersAggregateInterval);

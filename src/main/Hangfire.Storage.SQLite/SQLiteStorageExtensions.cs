@@ -1,7 +1,5 @@
 ﻿using Hangfire.Annotations;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Hangfire.Storage.SQLite
 {
@@ -20,9 +18,9 @@ namespace Hangfire.Storage.SQLite
             [NotNull] this IGlobalConfiguration configuration)
         {
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
-            
+
             var storage = new SQLiteStorage("Hangfire.db", new SQLiteStorageOptions());
-            
+
             return configuration.UseStorage(storage);
         }
 
@@ -42,9 +40,9 @@ namespace Hangfire.Storage.SQLite
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
             if (nameOrConnectionString == null) throw new ArgumentNullException(nameof(nameOrConnectionString));
             if (options == null) options = new SQLiteStorageOptions();
-            
+
             var storage = new SQLiteStorage(nameOrConnectionString, options);
-            
+
             return configuration.UseStorage(storage);
         }
 

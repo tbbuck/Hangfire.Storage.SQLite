@@ -1,5 +1,5 @@
-using System;
 using SQLite;
+using System;
 
 namespace Hangfire.Storage.SQLite.Test.Utils
 {
@@ -16,12 +16,12 @@ namespace Hangfire.Storage.SQLite.Test.Utils
         {
             // See SQLite Docs: https://www.sqlite.org/c3ref/c_open_autoproxy.html
             // const SQLiteOpenFlags SQLITE_OPEN_MEMORY = (SQLiteOpenFlags) 0x00000080;
-            const SQLiteOpenFlags SQLITE_OPEN_URI = (SQLiteOpenFlags) 0x00000040;
+            const SQLiteOpenFlags SQLITE_OPEN_URI = (SQLiteOpenFlags)0x00000040;
             const SQLiteOpenFlags flags = // open the database in memory
-                // SQLITE_OPEN_MEMORY |
-                // SQLiteOpenFlags.SharedCache |
-                // for whatever reason, if we don't use URI-mode,
-                // shared in-memory databases dont work properly.
+                                          // SQLITE_OPEN_MEMORY |
+                                          // SQLiteOpenFlags.SharedCache |
+                                          // for whatever reason, if we don't use URI-mode,
+                                          // shared in-memory databases dont work properly.
                 SQLITE_OPEN_URI |
                 // open the database in read/write mode
                 SQLiteOpenFlags.ReadWrite |

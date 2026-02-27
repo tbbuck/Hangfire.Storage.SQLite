@@ -28,7 +28,7 @@ namespace Hangfire.Storage.SQLite
         private string EventWaitHandleName => string.Intern($@"{GetType().FullName}.{_resource}");
 
         public event Action<bool> Heartbeat;
-        
+
         /// <summary>
         /// Creates SQLite distributed lock
         /// </summary>
@@ -117,7 +117,7 @@ namespace Hangfire.Storage.SQLite
                     return;
                 }
 
-                var waitTime = (int) timeout.TotalMilliseconds / 10;
+                var waitTime = (int)timeout.TotalMilliseconds / 10;
                 // either wait for the event to be raised, or timeout
                 lock (EventWaitHandleName)
                 {
@@ -134,7 +134,8 @@ namespace Hangfire.Storage.SQLite
         /// <exception cref="DistributedLockTimeoutException"></exception>
         private void Release()
         {
-            Retry.Twice((retry) => {
+            Retry.Twice((retry) =>
+            {
 
                 // Remove resource lock (if it's still ours)
                 var count = _dbContext.DistributedLockRepository.Delete(_ => _.Resource == _resource && _.ResourceKey == _resourceKey);
@@ -150,7 +151,8 @@ namespace Hangfire.Storage.SQLite
         {
             try
             {
-                Retry.Twice((_) => {
+                Retry.Twice((_) =>
+                {
                     // Delete expired locks (of any owner)
                     _dbContext.DistributedLockRepository.
                         Delete(x => x.Resource == _resource && x.ExpireAt < DateTime.UtcNow);

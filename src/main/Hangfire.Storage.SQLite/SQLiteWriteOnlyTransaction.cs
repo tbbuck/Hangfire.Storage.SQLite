@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using Hangfire.States;
+﻿using Hangfire.States;
 using Hangfire.Storage.SQLite.Entities;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Hangfire.Storage.SQLite
 {
@@ -113,7 +111,8 @@ namespace Hangfire.Storage.SQLite
 
         public override void Commit()
         {
-            Retry.Twice((attempts) => {
+            Retry.Twice((attempts) =>
+            {
 
                 lock (_lockObject)
                 {

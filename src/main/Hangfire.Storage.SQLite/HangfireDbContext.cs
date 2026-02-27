@@ -1,6 +1,5 @@
 ﻿using Hangfire.Logging;
 using Hangfire.Storage.SQLite.Entities;
-using Newtonsoft.Json;
 using SQLite;
 using System;
 using System.Threading;
@@ -42,7 +41,7 @@ namespace Hangfire.Storage.SQLite
 
             ConnectionId = Guid.NewGuid().ToString();
         }
-        
+
         /// <summary>
         /// Initializes initial tables schema for Hangfire
         /// </summary>
@@ -62,7 +61,7 @@ namespace Hangfire.Storage.SQLite
             TryFewTimesDueToConcurrency(() => Database.CreateTable<Set>());
             TryFewTimesDueToConcurrency(() => Database.CreateTable<State>());
             TryFewTimesDueToConcurrency(() => Database.CreateTable<DistributedLock>());
-            
+
             void TryFewTimesDueToConcurrency(Action action, int times = 10)
             {
                 var current = 0;
@@ -136,7 +135,7 @@ namespace Hangfire.Storage.SQLite
                 Database = null;
             }
         }
-        
+
         public void Dispose()
         {
             Dispose(true);

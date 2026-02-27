@@ -1,10 +1,10 @@
 ﻿using Hangfire.Annotations;
 using Hangfire.Logging;
 using Hangfire.Server;
+using Hangfire.Storage.SQLite.Entities;
 using System;
 using System.Linq;
 using System.Threading;
-using Hangfire.Storage.SQLite.Entities;
 
 namespace Hangfire.Storage.SQLite
 {
