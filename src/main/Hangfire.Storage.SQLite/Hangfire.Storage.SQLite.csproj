@@ -18,7 +18,6 @@
 		<RepositoryUrl>https://github.com/tbbuck/Hangfire.Storage.SQLite</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>Hangfire Hangfire-Storage Hangfire-Extension SQLite</PackageTags>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<title>Hangfire Storage SQLite (tbbuck fork)</title>
 		<Description>An alternative SQLite storage for Hangfire. Maintained fork of RaisedApp/Hangfire.Storage.SQLite that modernises the SQLite dependency stack and remediates CVE-2025-6965.</Description>
 		<PackageReleaseNotes>

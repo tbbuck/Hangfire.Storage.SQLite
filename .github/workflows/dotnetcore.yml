@@ -2,13 +2,13 @@ name: CI-HS-SQLITE
 
 on:
   pull_request:
-        branches: 
-          - master
-          - develop    
-  push:
-    branches: 
+    branches:
       - master
-      - develop  
+      - develop
+  push:
+    branches:
+      - master
+      - develop
 jobs:
   build:
     strategy:
@@ -17,16 +17,18 @@ jobs:
           - macOS-latest
           - ubuntu-latest
           - windows-latest
-          
+
     runs-on: ${{matrix.os}}
-    
+
     steps:
-    - uses: actions/checkout@v3
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v3
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: |
+          8.0.x
+          9.0.x
     - name: Build with dotnet
       run: dotnet build --configuration Release
     - name: Unit Tests
-      run: dotnet test
+      run: dotnet test --configuration Release
