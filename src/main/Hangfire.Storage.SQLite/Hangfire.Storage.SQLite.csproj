@@ -7,19 +7,29 @@
 		<TargetFrameworks>netstandard2.0;net48</TargetFrameworks>
 	</PropertyGroup>
 	<PropertyGroup>
-		<Version>0.4.3</Version>
-		<Authors>RaisedApp</Authors>
-		<Company>RaisedApp</Company>
-		<Copyright>Copyright © 2019 - Present</Copyright>
+		<Version>0.5.0-beta</Version>
+		<PackageId>tbbuck.Hangfire.Storage.SQLite</PackageId>
+		<Authors>Thomas Buck</Authors>
+		<Company>Thomas Buck</Company>
+		<Copyright>Copyright © 2019 - Present RaisedApp and contributors; fork © 2026 Thomas Buck</Copyright>
 		<PackageLicenseFile>LICENSE</PackageLicenseFile>
-		<PackageProjectUrl>https://github.com/raisedapp/Hangfire.Storage.SQLite</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/raisedapp/Hangfire.Storage.SQLite</RepositoryUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageProjectUrl>https://github.com/tbbuck/Hangfire.Storage.SQLite</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/tbbuck/Hangfire.Storage.SQLite</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>Hangfire Hangfire-Storage Hangfire-Extension SQLite</PackageTags>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<title>Hangfire Storage SQLite</title>
-		<Description>An Alternative SQLite Storage for Hangfire</Description>
+		<title>Hangfire Storage SQLite (tbbuck fork)</title>
+		<Description>An alternative SQLite storage for Hangfire. Maintained fork of RaisedApp/Hangfire.Storage.SQLite that modernises the SQLite dependency stack and remediates CVE-2025-6965.</Description>
 		<PackageReleaseNotes>
+      0.5.0-beta (tbbuck fork)
+      - Security: remediate CVE-2025-6965 (SQLite &lt; 3.50.2, High/CVSS 7.2) by dropping the
+        bundled SQLitePCLRaw.lib.e_sqlite3 2.1.11 native library.
+      - Replace sqlite-net-pcl 1.9.172 + SQLitePCLRaw.bundle_green 2.1.11 with sqlite-net-pcl
+        1.11.272-beta, which depends on SQLitePCLRaw.core 3.0.3 and ships the patched
+        SourceGear.sqlite3 3.50.4.5 native engine (SQLite 3.50.4).
+      - No public API changes; the ORM surface is unchanged.
+
       0.4.3 (thanks to @itsC-Ramesh)
       - Upgrade projects to .NET 8.0 (LTS).
       - Update dependencies (Hangfire 1.8.23, Newtonsoft.Json 13.0.4).
@@ -32,12 +42,15 @@
 			<Pack>True</Pack>
 			<PackagePath></PackagePath>
 		</None>
+		<None Include="..\..\..\README.md">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Hangfire.Core" Version="1.8.23" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
-		<PackageReference Include="SQLitePCLRaw.bundle_green" Version="2.1.11" />
+		<PackageReference Include="sqlite-net-pcl" Version="1.11.272-beta" />
 	</ItemGroup>
 
 </Project>
