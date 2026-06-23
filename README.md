@@ -54,6 +54,7 @@ Below is a description of them:
 --- | ---
 **QueuePollInterval** |  **TimeSpan.FromSeconds(15)**
 **InvisibilityTimeout** |  **TimeSpan.FromMinutes(30)**
+**UseSlidingInvisibilityTimeout** | **false** (see [Sliding invisibility timeout](#sliding-invisibility-timeout))
 **DistributedLockLifetime** | **TimeSpan.FromSeconds(30)**
 **JobExpirationCheckInterval** | **TimeSpan.FromHours(1)**
 **CountersAggregateInterval** | **TimeSpan.FromMinutes(5)**
@@ -85,6 +86,30 @@ querying, and existing databases gain them automatically on next startup.
 -- instead of: SELECT ExpireAt FROM "Job"   (raw ticks)
 SELECT ExpireAtUtc, CreatedAtUtc FROM "Job_utc" WHERE ExpireAtUtc > '2026-01-01';
 ```
+
+## Sliding invisibility timeout
+
+When a worker dequeues a job, the job is hidden from other workers for `InvisibilityTimeout`
+(default 30 minutes). If a job runs longer than that, another worker can pick it up and run it
+**again** — duplicate execution. Raising `InvisibilityTimeout` only delays recovery when a server
+genuinely crashes.
+
+Setting `UseSlidingInvisibilityTimeout = true` fixes this the same way Hangfire's SQL Server and
+PostgreSQL providers do: while a worker holds a job, a background process periodically "slides" the
+job's fetched timestamp forward. The job stays invisible for as long as the owning worker is alive,
+and becomes available again shortly after the worker (or its process) dies — so you can use a much
+lower `InvisibilityTimeout` safely with long-running jobs.
+
+```csharp
+GlobalConfiguration.Configuration.UseSQLiteStorage("hangfire.db", new SQLiteStorageOptions
+{
+    UseSlidingInvisibilityTimeout = true,
+    InvisibilityTimeout = TimeSpan.FromMinutes(5),
+});
+```
+
+The keep-alive runs every `InvisibilityTimeout / 5`. It relies on the storage's background processes
+running, so it has no effect on servers configured not to run them.
 
 ## Thanks
 

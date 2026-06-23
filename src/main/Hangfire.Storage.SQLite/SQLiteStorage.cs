@@ -40,6 +40,17 @@ namespace Hangfire.Storage.SQLite
         public PersistentJobQueueProviderCollection QueueProviders { get; }
 
         /// <summary>
+        /// Storage options in effect for this instance.
+        /// </summary>
+        internal SQLiteStorageOptions StorageOptions => _storageOptions;
+
+        /// <summary>
+        /// Background process that refreshes fetched timestamps when
+        /// <see cref="SQLiteStorageOptions.UseSlidingInvisibilityTimeout"/> is enabled; otherwise null.
+        /// </summary>
+        internal SQLiteHeartbeatProcess HeartbeatProcess { get; private set; }
+
+        /// <summary>
         /// Constructs Job Storage by database connection string
         /// </summary>
         /// <param name="databasePath">SQLite connection string</param>
@@ -73,8 +84,16 @@ namespace Hangfire.Storage.SQLite
             _dbConnectionFactory = dbConnectionFactory ?? throw new ArgumentNullException(nameof(dbConnectionFactory));
             _storageOptions = storageOptions ?? throw new ArgumentNullException(nameof(storageOptions));
 
-            var defaultQueueProvider = new SQLiteJobQueueProvider(_storageOptions);
+            var defaultQueueProvider = new SQLiteJobQueueProvider(_storageOptions)
+            {
+                Storage = this
+            };
             QueueProviders = new PersistentJobQueueProviderCollection(defaultQueueProvider);
+
+            if (_storageOptions.UseSlidingInvisibilityTimeout)
+            {
+                HeartbeatProcess = new SQLiteHeartbeatProcess();
+            }
 
             using (var dbContext = CreateAndOpenConnection())
             {
@@ -194,6 +213,10 @@ namespace Hangfire.Storage.SQLite
         {
             yield return new ExpirationManager(this, _storageOptions.JobExpirationCheckInterval);
             yield return new CountersAggregator(this, _storageOptions.CountersAggregateInterval);
+            if (HeartbeatProcess != null)
+            {
+                yield return HeartbeatProcess;
+            }
         }
 
         /// <summary>
@@ -205,6 +228,10 @@ namespace Hangfire.Storage.SQLite
         {
             yield return new ExpirationManager(this, _storageOptions.JobExpirationCheckInterval);
             yield return new CountersAggregator(this, _storageOptions.CountersAggregateInterval);
+            if (HeartbeatProcess != null)
+            {
+                yield return HeartbeatProcess;
+            }
         }
     }
 }
