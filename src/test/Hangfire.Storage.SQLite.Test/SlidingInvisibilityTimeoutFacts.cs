@@ -108,6 +108,54 @@ namespace Hangfire.Storage.SQLite.Test
             Assert.Equal(DateTime.MinValue, record.FetchedAt);
         }
 
+        [Fact]
+        public void RemoveFromQueue_AfterKeepAlive_StillRemoves_UsingTheSlidTimestamp()
+        {
+            var storage = ConnectionUtils.CreateStorage(new SQLiteStorageOptions
+            {
+                UseSlidingInvisibilityTimeout = true,
+                InvisibilityTimeout = TimeSpan.FromMilliseconds(50),
+            });
+
+            using var connection = storage.CreateAndOpenConnection();
+            var fetchedAt = DateTime.UtcNow.AddMinutes(-1);
+            var id = CreateJobQueueRecord(connection, 1, fetchedAt);
+            var job = new SQLiteFetchedJob(storage, connection, id, 1, Queue, fetchedAt);
+
+            Thread.Sleep(100);
+            job.ExecuteKeepAliveQueryIfRequired(); // slides the fetched timestamp forward
+
+            // RemoveFromQueue must fence on the *slid* timestamp, not the original, and still succeed.
+            job.RemoveFromQueue();
+            Assert.Equal(0, connection.JobQueueRepository.Count());
+        }
+
+        [Fact]
+        public void Dequeue_WithSliding_FetchesTimedOutJob_AndTracksThenUntracksIt()
+        {
+            var storage = ConnectionUtils.CreateStorage(new SQLiteStorageOptions { UseSlidingInvisibilityTimeout = true });
+            using var connection = storage.CreateAndOpenConnection();
+
+            var job = new HangfireJob { InvocationData = "", Arguments = "", CreatedAt = DateTime.UtcNow };
+            connection.Database.Insert(job);
+            connection.Database.Insert(new JobQueue { JobId = job.Id, Queue = Queue, FetchedAt = DateTime.UtcNow.AddDays(-1) });
+
+            var queue = storage.QueueProviders.GetProvider(Queue).GetJobQueue(connection);
+
+            var payload = queue.Dequeue(new[] { Queue }, new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token);
+
+            Assert.IsType<SQLiteFetchedJob>(payload);
+            Assert.Equal(job.Id.ToString(), payload.JobId);
+
+            // The timed-out job was reclaimed (fetched timestamp is now recent) and is being kept alive.
+            var refreshed = connection.JobQueueRepository.First(x => x.JobId == job.Id).FetchedAt;
+            Assert.True(refreshed > DateTime.UtcNow.AddMinutes(-1));
+            Assert.Equal(1, storage.HeartbeatProcess.TrackedCount);
+
+            payload.Dispose();
+            Assert.Equal(0, storage.HeartbeatProcess.TrackedCount);
+        }
+
         private static int CreateJobQueueRecord(HangfireDbContext connection, int jobId, DateTime fetchedAt)
         {
             var jobQueue = new JobQueue

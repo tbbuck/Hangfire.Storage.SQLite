@@ -17,6 +17,11 @@ namespace Hangfire.Storage.SQLite
         private readonly ConcurrentDictionary<SQLiteFetchedJob, object> _items =
             new ConcurrentDictionary<SQLiteFetchedJob, object>();
 
+        /// <summary>
+        /// Number of in-progress fetched jobs currently being kept alive.
+        /// </summary>
+        internal int TrackedCount => _items.Count;
+
         public void Track(SQLiteFetchedJob item)
         {
             _items.TryAdd(item, null);

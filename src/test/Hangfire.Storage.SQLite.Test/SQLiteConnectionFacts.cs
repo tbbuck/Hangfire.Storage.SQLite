@@ -1530,9 +1530,11 @@ namespace Hangfire.Storage.SQLite.Test
             action(database, connection);
         }
 
+#pragma warning disable xUnit1013 // Public method must stay public: it is a Hangfire job target referenced via Job.FromExpression, not a test.
         public static void SampleMethod(string arg)
         {
             Debug.WriteLine(arg);
         }
+#pragma warning restore xUnit1013
     }
 }
