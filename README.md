@@ -40,6 +40,11 @@ or with the .NET CLI:
 dotnet add package tbbuck.Hangfire.Storage.SQLite --prerelease
 ```
 
+> **.NET Framework note:** the patched SourceGear SQLite engine does not support `AnyCPU` on
+> .NET Framework. If you consume this package from a .NET Framework app, set an explicit
+> `<PlatformTarget>` (`x64` or `x86`). Modern .NET (Core / 5+) consumers are unaffected — native
+> assets are resolved per-RID automatically.
+
 ## Usage
 
 This is how you connect to an SQLite instance
