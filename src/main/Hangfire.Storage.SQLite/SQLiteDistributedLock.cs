@@ -21,6 +21,10 @@ namespace Hangfire.Storage.SQLite
 
         private readonly SQLiteStorageOptions _storageOptions;
 
+        // When available, the heartbeat uses its own dedicated connection from the storage pool
+        // instead of the consumer's (NoMutex, not thread-safe) connection. See issue #79.
+        private readonly SQLiteStorage _storage;
+
         private Timer _heartbeatTimer;
 
         private bool _completed;
@@ -38,11 +42,13 @@ namespace Hangfire.Storage.SQLite
         /// <exception cref="DistributedLockTimeoutException">Thrown if lock is not acuired within the timeout</exception>
         private SQLiteDistributedLock(string resource,
             HangfireDbContext database,
-            SQLiteStorageOptions storageOptions)
+            SQLiteStorageOptions storageOptions,
+            SQLiteStorage storage)
         {
             _resource = resource ?? throw new ArgumentNullException(nameof(resource));
             _dbContext = database ?? throw new ArgumentNullException(nameof(database));
             _storageOptions = storageOptions ?? throw new ArgumentNullException(nameof(storageOptions));
+            _storage = storage;
             _resourceKey = Guid.NewGuid().ToString();
 
             if (string.IsNullOrEmpty(resource))
@@ -57,12 +63,27 @@ namespace Hangfire.Storage.SQLite
             HangfireDbContext database,
             SQLiteStorageOptions storageOptions)
         {
+            return Acquire(resource, timeout, database, storageOptions, null);
+        }
+
+        /// <summary>
+        /// Creates SQLite distributed lock, using a dedicated connection from <paramref name="storage"/>
+        /// for the heartbeat so that the timer thread never shares the caller's (non-thread-safe)
+        /// connection. See issue #79.
+        /// </summary>
+        internal static SQLiteDistributedLock Acquire(
+            string resource,
+            TimeSpan timeout,
+            HangfireDbContext database,
+            SQLiteStorageOptions storageOptions,
+            SQLiteStorage storage)
+        {
             if (timeout.TotalSeconds > int.MaxValue)
             {
                 throw new ArgumentException($"The timeout specified is too large. Please supply a timeout equal to or less than {int.MaxValue} seconds", nameof(timeout));
             }
 
-            var slock = new SQLiteDistributedLock(resource, database, storageOptions);
+            var slock = new SQLiteDistributedLock(resource, database, storageOptions, storage);
 
             slock.Acquire(timeout);
             slock.StartHeartBeat();
@@ -179,7 +200,24 @@ namespace Hangfire.Storage.SQLite
                 // but since we use the resource key, we will not disturb other owners.
                 try
                 {
-                    var didUpdate = UpdateExpiration(_dbContext.DistributedLockRepository, DateTime.UtcNow.Add(_storageOptions.DistributedLockLifetime));
+                    var newExpiry = DateTime.UtcNow.Add(_storageOptions.DistributedLockLifetime);
+
+                    bool didUpdate;
+                    if (_storage != null)
+                    {
+                        // Run the heartbeat on a dedicated connection so the timer thread never
+                        // touches the consumer's connection concurrently (issue #79).
+                        using (var heartbeatContext = _storage.CreateAndOpenConnection())
+                        {
+                            didUpdate = UpdateExpiration(heartbeatContext.DistributedLockRepository, newExpiry);
+                        }
+                    }
+                    else
+                    {
+                        // Legacy path (no storage available): falls back to the shared connection.
+                        didUpdate = UpdateExpiration(_dbContext.DistributedLockRepository, newExpiry);
+                    }
+
                     Heartbeat?.Invoke(didUpdate);
                     if (!didUpdate)
                     {

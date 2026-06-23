@@ -107,7 +107,7 @@ namespace Hangfire.Storage.SQLite
         {
             CheckDisposed();
             var dbContext = CreateAndOpenConnection();
-            return new HangfireSQLiteConnection(dbContext, _storageOptions, QueueProviders);
+            return new HangfireSQLiteConnection(dbContext, _storageOptions, QueueProviders) { Storage = this };
         }
 
         public override IMonitoringApi GetMonitoringApi()

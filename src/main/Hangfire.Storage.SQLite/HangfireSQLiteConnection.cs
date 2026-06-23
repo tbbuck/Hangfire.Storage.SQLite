@@ -20,6 +20,12 @@ namespace Hangfire.Storage.SQLite
         public HangfireDbContext DbContext { get; }
 
         /// <summary>
+        /// Owning storage, set by <see cref="SQLiteStorage.GetConnection"/>. Lets the distributed
+        /// lock heartbeat run on a dedicated connection instead of this connection (issue #79).
+        /// </summary>
+        internal SQLiteStorage Storage { get; set; }
+
+        /// <summary>
         /// Ctor using default storage options
         /// </summary>
         public HangfireSQLiteConnection(HangfireDbContext database, PersistentJobQueueProviderCollection queueProviders)
@@ -47,7 +53,7 @@ namespace Hangfire.Storage.SQLite
         public override IDisposable AcquireDistributedLock(string resource, TimeSpan timeout)
         {
             return Retry.Twice((_) =>
-                SQLiteDistributedLock.Acquire($"HangFire:{resource}", timeout, DbContext, _storageOptions)
+                SQLiteDistributedLock.Acquire($"HangFire:{resource}", timeout, DbContext, _storageOptions, Storage)
             );
         }
 
