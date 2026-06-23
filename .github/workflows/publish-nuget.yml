@@ -1,0 +1,50 @@
+name: Publish to NuGet
+
+# Publishes the package using NuGet.org Trusted Publishing (OIDC) — no long-lived API key.
+# Triggered by publishing a GitHub Release (recommended), or run manually.
+#
+# One-time setup on nuget.org (Account -> Trusted Publishing):
+#   - Package owner: your nuget.org account
+#   - Repository owner: tbbuck
+#   - Repository:       Hangfire.Storage.SQLite
+#   - Workflow file:    publish-nuget.yml
+#   - (optional) restrict to the "release" environment used below
+# Then set a repository variable NUGET_USER to your nuget.org username
+# (Settings -> Secrets and variables -> Actions -> Variables).
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  id-token: write   # required to request the OIDC token for trusted publishing
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Pack
+        run: dotnet pack src/main/Hangfire.Storage.SQLite/Hangfire.Storage.SQLite.csproj -c Release -o artifacts
+
+      - name: NuGet login (Trusted Publishing / OIDC)
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ vars.NUGET_USER }}
+
+      - name: Push to NuGet
+        run: >-
+          dotnet nuget push "artifacts/*.nupkg"
+          --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
