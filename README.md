@@ -1,9 +1,13 @@
-# Hangfire.Storage.SQLite
-[![NuGet](https://buildstats.info/nuget/Hangfire.Storage.SQLite)](https://www.nuget.org/packages/Hangfire.Storage.SQLite)
-[![Actions Status Master](https://github.com/raisedapp/Hangfire.Storage.SQLite/workflows/CI-HS-SQLITE/badge.svg?branch=master)](https://github.com/raisedapp/Hangfire.Storage.SQLite/actions)
-[![Actions Status Develop](https://github.com/raisedapp/Hangfire.Storage.SQLite/workflows/CI-HS-SQLITE/badge.svg?branch=develop)](https://github.com/raisedapp/Hangfire.Storage.SQLite/actions)
+# Hangfire.Storage.SQLite (tbbuck fork)
+[![NuGet](https://img.shields.io/nuget/vpre/tbbuck.Hangfire.Storage.SQLite.svg)](https://www.nuget.org/packages/tbbuck.Hangfire.Storage.SQLite)
 [![Official Site](https://img.shields.io/badge/site-hangfire.io-blue.svg)](http://hangfire.io)
 [![License MIT](https://img.shields.io/badge/license-MIT-green.svg)](http://opensource.org/licenses/MIT)
+
+> ## 🔒 Why this fork exists
+>
+> This is a **security-maintained fork** of [raisedapp/Hangfire.Storage.SQLite](https://github.com/raisedapp/Hangfire.Storage.SQLite). The original package pulls in a SQLite native engine (`SQLitePCLRaw.bundle_green` → `lib.e_sqlite3 2.1.11`) that is affected by **[CVE-2025-6965](https://github.com/advisories/GHSA-2m69-gcr7-jv3q)** — a High-severity (CVSS 7.2) memory-corruption flaw in SQLite versions before 3.50.2.
+>
+> This fork removes that dependency and ships the **patched SourceGear SQLite 3.50.4** engine instead, with no public API changes. It is published on NuGet as **[`tbbuck.Hangfire.Storage.SQLite`](https://www.nuget.org/packages/tbbuck.Hangfire.Storage.SQLite)**, and additionally adds [UTC timestamp views](#querying-timestamps-directly-utc-views) and an opt-in [sliding invisibility timeout](#sliding-invisibility-timeout).
 
 ## Overview
 
@@ -22,10 +26,18 @@ Is production ready? **Yes**
 
 ## Installation
 
-Install a package from Nuget.
+Install the package from NuGet. It is published as a prerelease (it depends on the
+prerelease `sqlite-net-pcl 1.11.x` that carries the patched SQLite engine), so include
+prereleases when installing:
 
 ```
-Install-Package Hangfire.Storage.SQLite
+Install-Package tbbuck.Hangfire.Storage.SQLite -IncludePrerelease
+```
+
+or with the .NET CLI:
+
+```
+dotnet add package tbbuck.Hangfire.Storage.SQLite --prerelease
 ```
 
 ## Usage
