@@ -19,9 +19,15 @@ namespace Hangfire.Storage.SQLite
             _storageOptions = storageOptions ?? throw new ArgumentNullException(nameof(storageOptions));
         }
 
+        /// <summary>
+        /// Owning storage, set by <see cref="SQLiteStorage"/>. Used so fetched jobs can open dedicated
+        /// connections for sliding-invisibility-timeout heartbeats.
+        /// </summary>
+        internal SQLiteStorage Storage { get; set; }
+
         public IPersistentJobQueue GetJobQueue(HangfireDbContext connection)
         {
-            return new SQLiteJobQueue(connection, _storageOptions);
+            return new SQLiteJobQueue(Storage, connection, _storageOptions);
         }
 
         public IPersistentJobQueueMonitoringApi GetJobQueueMonitoringApi(HangfireDbContext connection)

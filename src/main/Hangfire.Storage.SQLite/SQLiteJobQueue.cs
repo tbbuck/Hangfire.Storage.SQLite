@@ -10,15 +10,27 @@ namespace Hangfire.Storage.SQLite
 
         private readonly HangfireDbContext _dbContext;
 
+        private readonly SQLiteStorage _storage;
+
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="storageOptions"></param>
         public SQLiteJobQueue(HangfireDbContext connection, SQLiteStorageOptions storageOptions)
+            : this(null, connection, storageOptions)
+        {
+        }
+
+        /// <summary>
+        /// Constructs the queue with a reference to the owning storage so fetched jobs can open
+        /// dedicated connections for sliding-invisibility-timeout heartbeats.
+        /// </summary>
+        internal SQLiteJobQueue(SQLiteStorage storage, HangfireDbContext connection, SQLiteStorageOptions storageOptions)
         {
             _storageOptions = storageOptions ?? throw new ArgumentNullException(nameof(storageOptions));
             _dbContext = connection ?? throw new ArgumentNullException(nameof(connection));
+            _storage = storage;
         }
 
         /// <summary>
@@ -77,7 +89,7 @@ namespace Hangfire.Storage.SQLite
                 }
             }
 
-            return new SQLiteFetchedJob(_dbContext, fetchedJob.Id, fetchedJob.JobId, fetchedJob.Queue);
+            return new SQLiteFetchedJob(_storage, _dbContext, fetchedJob.Id, fetchedJob.JobId, fetchedJob.Queue, fetchedJob.FetchedAt);
         }
 
         /// <summary>

@@ -87,6 +87,18 @@ namespace Hangfire.Storage.SQLite
         public TimeSpan InvisibilityTimeout { get; set; }
 
         /// <summary>
+        /// Apply a sliding invisibility timeout where the fetched timestamp of an in-progress job
+        /// is continually updated in the background while a worker holds it. This lets a lower
+        /// <see cref="InvisibilityTimeout"/> be used safely with long-running jobs: the job stays
+        /// invisible to other workers while the owning worker is alive, and becomes available again
+        /// shortly after the worker (or its process) dies.
+        /// Defaults to <c>false</c>, preserving the classic fixed-timeout behaviour.
+        /// IMPORTANT: this relies on the storage's background processes running; it has no effect on
+        /// servers configured not to run them.
+        /// </summary>
+        public bool UseSlidingInvisibilityTimeout { get; set; }
+
+        /// <summary>
         /// Expiration check inteval for jobs
         /// </summary>
         public TimeSpan JobExpirationCheckInterval { get; set; }
