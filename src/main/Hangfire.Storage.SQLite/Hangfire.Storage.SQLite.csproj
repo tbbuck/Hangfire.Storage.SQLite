@@ -10,7 +10,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 	</PropertyGroup>
 	<PropertyGroup>
-		<Version>0.5.0-beta</Version>
+		<Version>0.5.1-beta</Version>
 		<PackageId>tbbuck.Hangfire.Storage.SQLite</PackageId>
 		<Authors>Thomas Buck</Authors>
 		<Company>Thomas Buck</Company>
@@ -24,6 +24,11 @@
 		<title>Hangfire Storage SQLite (tbbuck fork)</title>
 		<Description>An alternative SQLite storage for Hangfire. Maintained fork of RaisedApp/Hangfire.Storage.SQLite that modernises the SQLite dependency stack and remediates CVE-2025-6965.</Description>
 		<PackageReleaseNotes>
+      0.5.1-beta (tbbuck fork)
+      - Fix AccessViolationException / storage corruption in SQLiteDistributedLock: the lock
+        heartbeat now runs on its own dedicated connection instead of sharing the caller's
+        non-thread-safe (NoMutex) connection (upstream issue #79).
+
       0.5.0-beta (tbbuck fork)
       - Security: remediate CVE-2025-6965 (SQLite &lt; 3.50.2, High/CVSS 7.2) by dropping the
         bundled SQLitePCLRaw.lib.e_sqlite3 2.1.11 native library.
