@@ -214,8 +214,13 @@ namespace Hangfire.Storage.SQLite
                     }
                     else
                     {
-                        // Legacy path (no storage available): falls back to the shared connection.
-                        didUpdate = UpdateExpiration(_dbContext.DistributedLockRepository, newExpiry);
+                        // No storage available (e.g. the public Acquire overload): open a dedicated,
+                        // thread-safe connection to the same database so the timer thread never
+                        // touches the caller's connection.
+                        using (var heartbeatConnection = OpenDedicatedConnection())
+                        {
+                            didUpdate = UpdateExpiration(heartbeatConnection.Table<DistributedLock>(), newExpiry);
+                        }
                     }
 
                     Heartbeat?.Invoke(didUpdate);
@@ -235,6 +240,29 @@ namespace Hangfire.Storage.SQLite
                 // restart timer
                 _heartbeatTimer?.Change(timerInterval, timerInterval);
             }, null, timerInterval, timerInterval);
+        }
+
+        /// <summary>
+        /// Opens a dedicated, thread-safe (FullMutex) connection to the same database the caller's
+        /// context uses, for running the heartbeat off the caller's connection. Used when no storage
+        /// (and therefore no connection pool) is available.
+        /// </summary>
+        private SQLiteConnection OpenDedicatedConnection()
+        {
+            var databasePath = _dbContext.Database.DatabasePath;
+
+            var flags = SQLiteOpenFlags.ReadWrite | SQLiteOpenFlags.Create | SQLiteOpenFlags.FullMutex;
+
+            // Honour URI-style paths (e.g. the shared in-memory databases used by tests).
+            if (databasePath.StartsWith("file:", StringComparison.OrdinalIgnoreCase))
+            {
+                flags |= SQLiteOpenFlags.Uri;
+            }
+
+            return new SQLiteConnection(databasePath, flags, storeDateTimeAsTicks: true)
+            {
+                BusyTimeout = TimeSpan.FromSeconds(10)
+            };
         }
 
         private bool UpdateExpiration(TableQuery<DistributedLock> tableQuery, DateTime expireAt)
